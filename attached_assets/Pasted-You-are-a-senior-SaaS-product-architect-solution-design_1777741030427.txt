@@ -1,0 +1,297 @@
+You are a senior SaaS product architect, solution designer, and full-stack development planner.
+
+I want to build a production-level module called:
+
+FieldServicer Support Tracker
+
+It is an omnichannel support system for FieldServicer operations, supporting Email and WhatsApp ticket management linked to clients, sites, employees, vendors, jobs, and work orders.
+
+Your job is to guide me interactively, step by step.
+
+Important rules:
+1. Do not generate everything at once.
+2. Ask me one step at a time.
+3. After each step, wait for my approval before continuing.
+4. Give me clear options when decisions are needed.
+5. Explain technical decisions in simple business language.
+6. Assume this will become a commercial SaaS product.
+7. Design it for production, scalability, security, and future AI automation.
+
+Project Scope:
+
+Build a centralized omnichannel support tracker with this flow:
+
+Capture → Identify → Link → Assign → Respond → Automate → Escalate → Resolve → Analyze
+
+Supported channels:
+- Email
+- WhatsApp
+
+Supported linked entities:
+- Employees
+- Sites
+- Clients
+- Vendors
+- Jobs / Work Orders
+
+Core architecture:
+- Modular microservice or embedded module
+- Event-driven architecture
+- Real-time updates using WebSockets
+- API-first design
+
+Core services:
+- Message Ingestion Service
+- Ticket Engine
+- Automation Engine
+- Notification Service
+- Reporting Engine
+- Media Storage Service
+
+Email features:
+- IMAP / SMTP
+- Gmail, Outlook, Office365
+- Multiple inboxes
+- Email to ticket conversion
+- Thread reconstruction
+- HTML email rendering
+- Attachments
+- CC / BCC tracking
+- Signature detection
+- Spam filtering
+
+WhatsApp features:
+- WhatsApp Business API
+- Twilio or 360dialog support
+- Incoming WhatsApp messages become tickets
+- Two-way messaging from dashboard
+- Images, PDFs, voice notes, videos
+- Sent / delivered / read status
+- Template messages
+- Multi-agent chat handling
+- 24-hour session window handling
+
+Ticket features:
+- Ticket ID
+- Channel
+- Linked client, site, employee, job
+- Subject
+- Description
+- Priority
+- Status
+- Assigned team / agent
+- Tags
+- SLA timers
+- Created, updated, closed timestamps
+
+Ticket statuses:
+- Open
+- In Progress
+- Waiting on Customer
+- Waiting on Internal
+- Escalated
+- Resolved
+- Closed
+
+Ticket actions:
+- Reply
+- Internal notes
+- Assign / reassign
+- Merge / split tickets
+- Change priority
+- Add/remove tags
+- Link to job/site/client
+- Convert to job/work order
+
+Entity linking:
+- Match email to client
+- Match phone to contact
+- Match job reference to job
+- Manual linking to client, site, employee, or job
+
+Automation engine:
+- Trigger → Condition → Action rule builder
+
+Triggers:
+- New ticket
+- Incoming message
+- Status change
+- SLA breach
+- Time-based events
+
+Conditions:
+- Channel
+- Keywords
+- Client type
+- Priority
+- Time
+
+Actions:
+- Assign team
+- Set priority
+- Add tags
+- Send reply
+- Escalate
+- Notify
+
+AI layer, planned for Phase 3:
+- Auto-classification
+- Smart reply suggestions
+- Sentiment analysis
+- Auto tagging
+- Priority prediction
+
+Agent workspace:
+- Unified inbox
+- Filters by status, team, priority, channel
+- Full conversation timeline
+- Channel indicators
+- Internal notes
+- Attachment preview
+- Audit log
+- Reply, assign, tag, escalate, link actions
+
+SLA and escalation:
+- First response SLA
+- Resolution SLA
+- Client, priority, and channel-based rules
+- Manager notification
+- Reassignment
+- Priority increase
+
+Notifications:
+- In-app
+- Email
+- Push
+- Optional internal WhatsApp alerts
+
+Attachments:
+- Secure storage
+- Preview
+- Download tracking
+- Optional virus scanning
+
+Search:
+- Full-text search
+- Filters by client, date, channel, status, agent
+
+Reports:
+- Tickets by channel
+- SLA compliance
+- Agent performance
+- Response time trends
+- CSV / PDF export
+- Scheduled reports
+
+Mobile support:
+- View tickets
+- Reply
+- Push notifications
+- Quick actions
+
+APIs:
+- Create ticket
+- Update ticket
+- Fetch conversations
+- Attach files
+
+Webhooks:
+- New ticket
+- Reply received
+- SLA breach
+
+Security:
+- Role-based access
+- Audit logs
+- Encryption at rest and in transit
+- GDPR-ready
+
+MVP:
+- Email to ticket
+- WhatsApp to ticket
+- Basic ticketing
+- Manual assignment
+- Reply system
+- Basic dashboard
+
+Phase 2:
+- Automation rules
+- SLA tracking
+- Entity linking
+- Advanced filters
+
+Phase 3:
+- AI automation
+- Smart replies
+- Sentiment detection
+
+Key differentiator:
+This is not just a helpdesk like Zendesk or Freshdesk.
+It is operational-first support for FieldServicer:
+- Linked to jobs and sites
+- Real-time field visibility
+- Support plus operations intelligence
+
+Now guide me through the project interactively using this sequence:
+
+Step 1: Confirm product vision and target users.
+Ask me who will use this system and what business problem is most important.
+
+Step 2: Define MVP boundaries.
+Help me decide what must be included in version 1 and what should wait.
+
+Step 3: Define user roles and permissions.
+Suggest roles such as admin, manager, support agent, field employee, client, and viewer.
+
+Step 4: Design the main user journeys.
+Cover email ticket creation, WhatsApp ticket creation, ticket assignment, reply flow, escalation, and resolution.
+
+Step 5: Design the data model.
+Create database tables and relationships for tickets, messages, contacts, clients, sites, jobs, users, attachments, tags, SLAs, automation rules, and audit logs.
+
+Step 6: Design the API structure.
+Create REST or GraphQL endpoints for tickets, messages, attachments, users, automation, reports, and webhooks.
+
+Step 7: Design the system architecture.
+Recommend frontend, backend, database, queue, storage, WebSocket, email integration, and WhatsApp integration choices.
+
+Step 8: Design the UI screens.
+Create detailed screens for dashboard, unified inbox, ticket detail, automation builder, SLA settings, reports, and admin settings.
+
+Step 9: Design automation rules.
+Create example rules for assignment, priority detection, SLA breach, escalation, and auto-replies.
+
+Step 10: Design reporting and analytics.
+Define dashboards, charts, KPIs, filters, and export options.
+
+Step 11: Design security and compliance.
+Include permissions, audit logs, encryption, data retention, and GDPR readiness.
+
+Step 12: Create the development roadmap.
+Break the build into MVP, Phase 2, and Phase 3 with estimated effort.
+
+Step 13: Create developer-ready documentation.
+Generate:
+- Database schema
+- API documentation
+- UI wireframe descriptions
+- User stories
+- Acceptance criteria
+- Technical architecture
+- Testing plan
+
+Step 14: Create build prompts.
+After the plan is approved, create separate prompts for:
+- Backend development
+- Frontend dashboard
+- Database schema
+- WhatsApp integration
+- Email integration
+- Automation engine
+- SLA engine
+- Reporting dashboard
+- Mobile support
+- AI features
+
+Begin now with Step 1 only.
+Ask me the first question and wait for my answer.

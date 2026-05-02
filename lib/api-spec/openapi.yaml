@@ -1,22 +1,42 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: FieldServicer Support Tracker API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: tickets
+    description: Ticket management
+  - name: messages
+    description: Message/conversation management
+  - name: clients
+    description: Client management
+  - name: sites
+    description: Site management
+  - name: employees
+    description: Employee management
+  - name: vendors
+    description: Vendor management
+  - name: jobs
+    description: Job and work order management
+  - name: contacts
+    description: Contact management
+  - name: users
+    description: Agent/user management
+  - name: tags
+    description: Tag management
+  - name: dashboard
+    description: Dashboard and analytics
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +44,560 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /tickets:
+    get:
+      operationId: listTickets
+      tags: [tickets]
+      summary: List tickets with filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+        - name: channel
+          in: query
+          schema:
+            type: string
+        - name: assignedTo
+          in: query
+          schema:
+            type: integer
+        - name: clientId
+          in: query
+          schema:
+            type: integer
+        - name: siteId
+          in: query
+          schema:
+            type: integer
+        - name: jobId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: List of tickets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketListResponse"
+    post:
+      operationId: createTicket
+      tags: [tickets]
+      summary: Create a new ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTicketBody"
+      responses:
+        "201":
+          description: Created ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+
+  /tickets/{id}:
+    get:
+      operationId: getTicket
+      tags: [tickets]
+      summary: Get a ticket by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketDetail"
+    patch:
+      operationId: updateTicket
+      tags: [tickets]
+      summary: Update a ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTicketBody"
+      responses:
+        "200":
+          description: Updated ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+
+  /tickets/{id}/messages:
+    get:
+      operationId: getTicketMessages
+      tags: [messages]
+      summary: Get all messages for a ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: createMessage
+      tags: [messages]
+      summary: Send a message or add internal note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageBody"
+      responses:
+        "201":
+          description: Created message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /clients:
+    get:
+      operationId: listClients
+      tags: [clients]
+      summary: List clients
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+    post:
+      operationId: createClient
+      tags: [clients]
+      summary: Create a client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClientBody"
+      responses:
+        "201":
+          description: Created client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+
+  /clients/{id}:
+    get:
+      operationId: getClient
+      tags: [clients]
+      summary: Get a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+
+  /sites:
+    get:
+      operationId: listSites
+      tags: [sites]
+      summary: List sites
+      parameters:
+        - name: clientId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of sites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Site"
+    post:
+      operationId: createSite
+      tags: [sites]
+      summary: Create a site
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSiteBody"
+      responses:
+        "201":
+          description: Created site
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+
+  /employees:
+    get:
+      operationId: listEmployees
+      tags: [employees]
+      summary: List employees
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Employee"
+    post:
+      operationId: createEmployee
+      tags: [employees]
+      summary: Create an employee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEmployeeBody"
+      responses:
+        "201":
+          description: Created employee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+
+  /vendors:
+    get:
+      operationId: listVendors
+      tags: [vendors]
+      summary: List vendors
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vendor"
+    post:
+      operationId: createVendor
+      tags: [vendors]
+      summary: Create a vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendorBody"
+      responses:
+        "201":
+          description: Created vendor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [jobs]
+      summary: List jobs and work orders
+      parameters:
+        - name: clientId
+          in: query
+          schema:
+            type: integer
+        - name: siteId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+    post:
+      operationId: createJob
+      tags: [jobs]
+      summary: Create a job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJobBody"
+      responses:
+        "201":
+          description: Created job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+
+  /contacts:
+    get:
+      operationId: listContacts
+      tags: [contacts]
+      summary: List contacts
+      parameters:
+        - name: clientId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contact"
+    post:
+      operationId: createContact
+      tags: [contacts]
+      summary: Create a contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContactBody"
+      responses:
+        "201":
+          description: Created contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List agents/users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /tags:
+    get:
+      operationId: listTags
+      tags: [tags]
+      summary: List tags
+      responses:
+        "200":
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tag"
+    post:
+      operationId: createTag
+      tags: [tags]
+      summary: Create a tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTagBody"
+      responses:
+        "201":
+          description: Created tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tag"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/ticket-trends:
+    get:
+      operationId: getTicketTrends
+      tags: [dashboard]
+      summary: Get ticket volume trends over last 7 days
+      responses:
+        "200":
+          description: Ticket trend data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendPoint"
+
+  /dashboard/channel-breakdown:
+    get:
+      operationId: getChannelBreakdown
+      tags: [dashboard]
+      summary: Get ticket counts by channel
+      responses:
+        "200":
+          description: Channel breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChannelBreakdown"
+
+  /dashboard/sla-summary:
+    get:
+      operationId: getSlaSummary
+      tags: [dashboard]
+      summary: Get SLA compliance summary
+      responses:
+        "200":
+          description: SLA summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlaSummary"
+
+  /dashboard/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent ticket activity feed
+      responses:
+        "200":
+          description: Recent activity items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  /dashboard/agent-stats:
+    get:
+      operationId: getAgentStats
+      tags: [dashboard]
+      summary: Get per-agent ticket stats
+      responses:
+        "200":
+          description: Agent stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentStat"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +605,634 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticketNumber:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          enum: [email, whatsapp, manual]
+        status:
+          type: string
+          enum: [open, in_progress, waiting_customer, waiting_internal, escalated, resolved, closed]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        clientId:
+          type: integer
+          nullable: true
+        clientName:
+          type: string
+          nullable: true
+        siteId:
+          type: integer
+          nullable: true
+        siteName:
+          type: string
+          nullable: true
+        employeeId:
+          type: integer
+          nullable: true
+        employeeName:
+          type: string
+          nullable: true
+        jobId:
+          type: integer
+          nullable: true
+        jobTitle:
+          type: string
+          nullable: true
+        contactId:
+          type: integer
+          nullable: true
+        contactName:
+          type: string
+          nullable: true
+        assignedToId:
+          type: integer
+          nullable: true
+        assignedToName:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        slaBreached:
+          type: boolean
+        firstResponseAt:
+          type: string
+          format: date-time
+          nullable: true
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        messageCount:
+          type: integer
+      required: [id, ticketNumber, subject, channel, status, priority, tags, slaBreached, createdAt, updatedAt, messageCount]
+
+    TicketDetail:
+      allOf:
+        - $ref: "#/components/schemas/Ticket"
+        - type: object
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: "#/components/schemas/Message"
+          required: [messages]
+
+    TicketListResponse:
+      type: object
+      properties:
+        tickets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ticket"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [tickets, total, page, limit]
+
+    CreateTicketBody:
+      type: object
+      properties:
+        subject:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          enum: [email, whatsapp, manual]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        clientId:
+          type: integer
+          nullable: true
+        siteId:
+          type: integer
+          nullable: true
+        employeeId:
+          type: integer
+          nullable: true
+        jobId:
+          type: integer
+          nullable: true
+        contactId:
+          type: integer
+          nullable: true
+        assignedToId:
+          type: integer
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+      required: [subject, channel, priority]
+
+    UpdateTicketBody:
+      type: object
+      properties:
+        subject:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [open, in_progress, waiting_customer, waiting_internal, escalated, resolved, closed]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        clientId:
+          type: integer
+          nullable: true
+        siteId:
+          type: integer
+          nullable: true
+        employeeId:
+          type: integer
+          nullable: true
+        jobId:
+          type: integer
+          nullable: true
+        contactId:
+          type: integer
+          nullable: true
+        assignedToId:
+          type: integer
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticketId:
+          type: integer
+        body:
+          type: string
+        type:
+          type: string
+          enum: [inbound, outbound, internal_note]
+        channel:
+          type: string
+          enum: [email, whatsapp, internal]
+        senderName:
+          type: string
+        senderType:
+          type: string
+          enum: [agent, contact, system]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, ticketId, body, type, channel, senderName, senderType, createdAt]
+
+    CreateMessageBody:
+      type: object
+      properties:
+        body:
+          type: string
+        type:
+          type: string
+          enum: [outbound, internal_note]
+      required: [body, type]
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        industry:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+        siteCount:
+          type: integer
+        openTicketCount:
+          type: integer
+      required: [id, name, status, createdAt, siteCount, openTicketCount]
+
+    CreateClientBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        industry:
+          type: string
+          nullable: true
+      required: [name]
+
+    Site:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+          nullable: true
+        clientId:
+          type: integer
+        clientName:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+        openTicketCount:
+          type: integer
+      required: [id, name, clientId, clientName, status, createdAt, openTicketCount]
+
+    CreateSiteBody:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+          nullable: true
+        clientId:
+          type: integer
+      required: [name, clientId]
+
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, status, createdAt]
+
+    CreateEmployeeBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+          nullable: true
+      required: [name]
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, status, createdAt]
+
+    CreateVendorBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+      required: [name]
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        jobNumber:
+          type: string
+        type:
+          type: string
+          enum: [job, work_order]
+        status:
+          type: string
+          enum: [pending, active, completed, cancelled]
+        clientId:
+          type: integer
+          nullable: true
+        clientName:
+          type: string
+          nullable: true
+        siteId:
+          type: integer
+          nullable: true
+        siteName:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        openTicketCount:
+          type: integer
+      required: [id, title, jobNumber, type, status, createdAt, openTicketCount]
+
+    CreateJobBody:
+      type: object
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum: [job, work_order]
+        clientId:
+          type: integer
+          nullable: true
+        siteId:
+          type: integer
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [title, type]
+
+    Contact:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        clientId:
+          type: integer
+          nullable: true
+        clientName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, createdAt]
+
+    CreateContactBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        clientId:
+          type: integer
+          nullable: true
+      required: [name]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, manager, agent, viewer]
+        avatar:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [online, offline, busy]
+        assignedTicketCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, email, role, status, assignedTicketCount, createdAt]
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        color:
+          type: string
+        ticketCount:
+          type: integer
+      required: [id, name, color, ticketCount]
+
+    CreateTagBody:
+      type: object
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+      required: [name, color]
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalOpen:
+          type: integer
+        totalInProgress:
+          type: integer
+        totalEscalated:
+          type: integer
+        totalResolved:
+          type: integer
+        totalToday:
+          type: integer
+        avgResponseTimeMinutes:
+          type: number
+        slaComplianceRate:
+          type: number
+        emailTickets:
+          type: integer
+        whatsappTickets:
+          type: integer
+        manualTickets:
+          type: integer
+        urgentOpen:
+          type: integer
+        unassignedOpen:
+          type: integer
+      required: [totalOpen, totalInProgress, totalEscalated, totalResolved, totalToday, avgResponseTimeMinutes, slaComplianceRate, emailTickets, whatsappTickets, manualTickets, urgentOpen, unassignedOpen]
+
+    TrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        created:
+          type: integer
+        resolved:
+          type: integer
+      required: [date, created, resolved]
+
+    ChannelBreakdown:
+      type: object
+      properties:
+        channel:
+          type: string
+        count:
+          type: integer
+        percentage:
+          type: number
+      required: [channel, count, percentage]
+
+    SlaSummary:
+      type: object
+      properties:
+        compliant:
+          type: integer
+        breached:
+          type: integer
+        atRisk:
+          type: integer
+        complianceRate:
+          type: number
+      required: [compliant, breached, atRisk, complianceRate]
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticketId:
+          type: integer
+        ticketNumber:
+          type: string
+        action:
+          type: string
+        description:
+          type: string
+        agentName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, ticketId, ticketNumber, action, description, agentName, createdAt]
+
+    AgentStat:
+      type: object
+      properties:
+        agentId:
+          type: integer
+        agentName:
+          type: string
+        openTickets:
+          type: integer
+        resolvedToday:
+          type: integer
+        avgResponseMinutes:
+          type: number
+      required: [agentId, agentName, openTickets, resolvedToday, avgResponseMinutes]
