@@ -7,9 +7,8 @@ import {
   useGetRecentActivity, getGetRecentActivityQueryKey,
   useGetAgentStats, getGetAgentStatsQueryKey,
 } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Clock, CheckCircle2, TicketIcon, TrendingUp, Mail, MessageCircle, Plus, AlertTriangle } from "lucide-react";
+import { AlertCircle, Clock, CheckCircle2, TicketIcon, TrendingUp, Mail, MessageCircle, Plus, AlertTriangle, Users } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
@@ -27,6 +26,32 @@ const PRIORITY_DOT: Record<string, string> = {
   medium: "bg-yellow-400",
   low: "bg-blue-400",
 };
+
+interface KpiCardProps {
+  label: string;
+  value: string | number;
+  sub: string;
+  icon: React.ReactNode;
+  gradient: string;
+}
+
+function KpiCard({ label, value, sub, icon, gradient }: KpiCardProps) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="flex items-start justify-between mb-3">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider leading-none">{label}</p>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: gradient }}
+        >
+          {icon}
+        </div>
+      </div>
+      <div className="text-3xl font-bold text-gray-900 leading-none mb-1.5">{value}</div>
+      <p className="text-xs text-gray-400">{sub}</p>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { data: summary, isLoading } = useGetDashboardSummary({
@@ -50,176 +75,140 @@ export default function Dashboard() {
     date: format(new Date(t.date), "MMM d"),
   }));
 
+  const channelTotal = channels.reduce((s: number, c: any) => s + c.count, 0) || 1;
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Executive overview of support operations.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-1">Executive overview of support operations.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map(i => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-[100px]" />
-                <Skeleton className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-[60px]" />
-                <Skeleton className="h-3 w-[120px] mt-2" />
-              </CardContent>
-            </Card>
+            <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <Skeleton className="h-3 w-24 mb-4" />
+              <Skeleton className="h-8 w-16 mb-2" />
+              <Skeleton className="h-3 w-32" />
+            </div>
           ))}
         </div>
       </div>
     );
   }
 
-  const channelTotal = channels.reduce((s: number, c: any) => s + c.count, 0) || 1;
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Executive overview of support operations.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm text-gray-400 mt-1">Executive overview of support operations.</p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
-            <TicketIcon className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalOpen ?? 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {summary?.urgentOpen ?? 0} urgent, {summary?.unassignedOpen ?? 0} unassigned
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalInProgress ?? 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Actively being worked on</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Escalated</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalEscalated ?? 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Requires immediate attention</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SLA Compliance</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.slaComplianceRate ?? 0}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Avg response: {summary?.avgResponseTimeMinutes ?? 0} mins
-            </p>
-          </CardContent>
-        </Card>
+      {/* KPI Cards — 4-column row matching portal.fieldservicer.com style */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Open Tickets"
+          value={summary?.totalOpen ?? 0}
+          sub={`${summary?.urgentOpen ?? 0} urgent · ${summary?.unassignedOpen ?? 0} unassigned`}
+          gradient="linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)"
+          icon={<TicketIcon className="w-4.5 h-4.5" style={{ color: "#7C3AED" }} />}
+        />
+        <KpiCard
+          label="In Progress"
+          value={summary?.totalInProgress ?? 0}
+          sub="Actively being worked on"
+          gradient="linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)"
+          icon={<Clock className="w-4.5 h-4.5" style={{ color: "#D97706" }} />}
+        />
+        <KpiCard
+          label="Escalated"
+          value={summary?.totalEscalated ?? 0}
+          sub="Requires immediate attention"
+          gradient="linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)"
+          icon={<AlertCircle className="w-4.5 h-4.5" style={{ color: "#DC2626" }} />}
+        />
+        <KpiCard
+          label="SLA Compliance"
+          value={`${summary?.slaComplianceRate ?? 0}%`}
+          sub={`Avg response: ${summary?.avgResponseTimeMinutes ?? 0} mins`}
+          gradient="linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)"
+          icon={<CheckCircle2 className="w-4.5 h-4.5" style={{ color: "#16A34A" }} />}
+        />
       </div>
 
-      {/* Charts Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" /> Ticket Volume (7 Days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {trendData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "6px",
-                      fontSize: "12px",
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: "12px" }} />
-                  <Line type="monotone" dataKey="created" stroke="#3b82f6" name="Created" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="resolved" stroke="#22c55e" name="Resolved" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[240px] flex items-center justify-center text-muted-foreground text-sm">
-                No trend data yet
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Charts */}
+      <div className="grid gap-4 lg:grid-cols-7">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 lg:col-span-4">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-violet-600" />
+            <h2 className="font-semibold text-gray-900 text-sm">Ticket Volume (7 Days)</h2>
+          </div>
+          {trendData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} allowDecimals={false} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    boxShadow: "0 4px 6px -1px rgba(0,0,0,.07)",
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: "12px" }} />
+                <Line type="monotone" dataKey="created" stroke="#7C3AED" name="Created" strokeWidth={2.5} dot={{ r: 3, fill: "#7C3AED" }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="resolved" stroke="#22C55E" name="Resolved" strokeWidth={2.5} dot={{ r: 3, fill: "#22C55E" }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-gray-400 text-sm">No trend data yet</div>
+          )}
+        </div>
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Channel Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 lg:col-span-3">
+          <h2 className="font-semibold text-gray-900 text-sm mb-4">Channel Breakdown</h2>
+          <div className="space-y-4">
             {channels.map((c: any) => {
               const pct = Math.round((c.count / channelTotal) * 100);
+              const barColor = c.channel === "whatsapp" ? "#22C55E" : c.channel === "email" ? "#6366F1" : "#A78BFA";
               return (
                 <div key={c.channel}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="flex items-center gap-1.5 text-sm font-medium capitalize">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="flex items-center gap-1.5 text-sm font-medium capitalize text-gray-700">
                       {CHANNEL_ICON[c.channel]}
                       {c.channel}
                     </span>
-                    <span className="text-sm text-muted-foreground">{c.count} tickets · {pct}%</span>
+                    <span className="text-xs text-gray-400">{c.count} tickets · {pct}%</span>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${c.channel === "whatsapp" ? "bg-green-500" : c.channel === "email" ? "bg-blue-500" : "bg-violet-500"}`}
-                      style={{ width: `${pct}%` }}
-                    />
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
                   </div>
                 </div>
               );
             })}
-            {channels.length === 0 && (
-              <p className="text-sm text-muted-foreground py-4 text-center">No channel data</p>
-            )}
-          </CardContent>
-        </Card>
+            {channels.length === 0 && <p className="text-sm text-gray-400 py-4 text-center">No channel data</p>}
+          </div>
+        </div>
       </div>
 
-      {/* Bottom Row: Recent Activity + Agent Stats */}
+      {/* Recent Activity + Agent Workload */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-              <Link href="/tickets" className="text-xs text-blue-600 hover:underline">View all →</Link>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900 text-sm">Recent Activity</h2>
+            <Link href="/tickets" className="text-xs text-violet-600 hover:underline font-medium">View all →</Link>
+          </div>
+          <div className="space-y-2">
             {activity.slice(0, 8).map((item: any) => (
               <Link key={item.id} href={`/tickets/${item.ticketId}`}>
-                <div className="flex items-start gap-3 hover:bg-muted/30 rounded p-1.5 -mx-1.5 transition-colors cursor-pointer">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${PRIORITY_DOT[item.priority] ?? "bg-gray-400"}`} />
+                <div className="flex items-start gap-3 hover:bg-gray-50 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${PRIORITY_DOT[item.priority] ?? "bg-gray-300"}`} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{item.subject}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium text-gray-800 truncate">{item.subject}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
                       {item.action} · {item.clientName ?? "No client"} · {formatDistanceToNow(new Date(item.at), { addSuffix: true })}
                     </p>
                   </div>
@@ -227,42 +216,47 @@ export default function Dashboard() {
                 </div>
               </Link>
             ))}
-            {activity.length === 0 && (
-              <p className="text-sm text-muted-foreground py-4 text-center">No recent activity</p>
-            )}
-          </CardContent>
-        </Card>
+            {activity.length === 0 && <p className="text-sm text-gray-400 py-4 text-center">No recent activity</p>}
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader><CardTitle className="text-sm font-medium">Agent Workload</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-4 h-4 text-violet-600" />
+            <h2 className="font-semibold text-gray-900 text-sm">Agent Workload</h2>
+          </div>
+          <div className="space-y-3">
             {agentStats.slice(0, 5).map((stat: any) => (
               <div key={stat.agentId} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  style={{ background: "linear-gradient(135deg, #6366F1 0%, #A855F7 100%)" }}
+                >
                   {stat.agentName.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium truncate">{stat.agentName}</span>
-                    <span className="text-xs text-muted-foreground ml-2">{stat.openTickets} open</span>
+                    <span className="text-sm font-medium text-gray-800 truncate">{stat.agentName}</span>
+                    <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{stat.openTickets} open</span>
                   </div>
-                  <div className="h-1.5 bg-muted rounded-full mt-1.5 overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${stat.openTickets > 5 ? "bg-red-500" : stat.openTickets > 2 ? "bg-orange-500" : "bg-green-500"}`}
-                      style={{ width: `${Math.min((stat.openTickets / 10) * 100, 100)}%` }}
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.min((stat.openTickets / 10) * 100, 100)}%`,
+                        background: stat.openTickets > 5 ? "#EF4444" : stat.openTickets > 2 ? "#F97316" : "#22C55E",
+                      }}
                     />
                   </div>
                 </div>
                 {stat.resolvedToday > 0 && (
-                  <span className="text-xs text-green-600 font-medium flex-shrink-0">+{stat.resolvedToday} today</span>
+                  <span className="text-xs text-green-600 font-semibold flex-shrink-0">+{stat.resolvedToday} today</span>
                 )}
               </div>
             ))}
-            {agentStats.length === 0 && (
-              <p className="text-sm text-muted-foreground py-4 text-center">No agent data</p>
-            )}
-          </CardContent>
-        </Card>
+            {agentStats.length === 0 && <p className="text-sm text-gray-400 py-4 text-center">No agent data</p>}
+          </div>
+        </div>
       </div>
     </div>
   );
