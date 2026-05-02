@@ -1,0 +1,453 @@
+FULL PRODUCTION-LEVEL SCOPE for the FieldServicer Support Tracker (Email + WhatsApp) — structured as a complete commercial specification ready for development.
+
+🚀 FieldServicer Support Tracker
+Full Production Scope (Final)
+1. 🎯 Objective
+Build a centralised omnichannel support system tightly integrated with FieldServicer operations:
+
+👉 Capture → Identify → Link → Assign → Respond → Automate → Escalate → Resolve → Analyse
+
+Supports:
+
+📧 Email
+
+💬 WhatsApp
+
+👷 Employees
+
+🏢 Sites
+
+🧑 Clients
+
+🧾 Vendors
+
+📦 Jobs / Work Orders
+
+2. 🧱 Core Architecture
+System Type
+Modular microservice (can be standalone or embedded)
+
+Event-driven architecture
+
+Real-time updates (WebSockets)
+
+Core Services
+Message Ingestion Service (Email + WhatsApp)
+
+Ticket Engine
+
+Automation Engine
+
+Notification Service
+
+Reporting Engine
+
+Media Storage Service
+
+3. 📥 Channel Integration
+A. Email (Full Production)
+Supported
+IMAP / SMTP
+
+Gmail / Outlook / Office365
+
+Multiple inboxes
+
+Features
+Auto-fetch emails (polling + webhook where supported)
+
+Email → Ticket conversion
+
+Full thread reconstruction
+
+HTML email rendering
+
+Attachments (store + preview)
+
+CC / BCC tracking
+
+Signature detection
+
+Spam filtering
+
+B. WhatsApp (Full Production)
+Uses:
+
+WhatsApp Business API
+
+Providers:
+
+Twilio
+
+360dialog
+
+Features
+Incoming messages → ticket
+
+2-way messaging from dashboard
+
+Media:
+
+Images
+
+PDFs
+
+Voice notes
+
+Videos
+
+Message status:
+
+Sent / Delivered / Read
+
+Template messages (Meta approved)
+
+Multi-agent chat handling
+
+Session window handling (24-hour rule)
+
+4. 🎫 Ticket Management System
+Ticket Model
+Each interaction becomes a ticket with full lifecycle tracking
+
+Core Fields
+TicketID
+
+Channel (Email / WhatsApp)
+
+Linked Entity:
+
+ClientID
+
+SiteID
+
+EmployeeID
+
+JobID
+
+Subject
+
+Description
+
+Priority
+
+Status
+
+Assigned Team / Agent
+
+Tags
+
+SLA Timers
+
+CreatedAt / UpdatedAt / ClosedAt
+
+Status Workflow
+Open
+
+In Progress
+
+Waiting on Customer
+
+Waiting on Internal
+
+Escalated
+
+Resolved
+
+Closed
+
+Ticket Actions
+Reply (channel-aware)
+
+Internal notes
+
+Assign / Reassign
+
+Merge / Split tickets
+
+Change priority
+
+Add/remove tags
+
+Link to job/site/client
+
+Convert to job/work order
+
+5. 🔗 Entity Linking (FieldServicer Advantage)
+Auto Linking Logic
+Match email → client
+
+Match phone → contact
+
+Match job reference → job
+
+Manual Linking
+Search and attach:
+
+Client
+
+Site
+
+Employee
+
+Job
+
+Result
+👉 Full history across operations
+👉 Context-aware support
+
+6. 🤖 Automation Engine (Advanced)
+Rule Builder
+Trigger → Condition → Action
+
+Triggers
+New ticket
+
+Incoming message
+
+Status change
+
+SLA breach
+
+Time-based
+
+Conditions
+Channel
+
+Keywords
+
+Client type
+
+Priority
+
+Time
+
+Actions
+Assign team
+
+Set priority
+
+Add tags
+
+Send reply
+
+Escalate
+
+Notify
+
+7. 🤖 AI Layer (Phase 3 but designed upfront)
+Auto-classification
+
+Smart reply suggestions
+
+Sentiment analysis
+
+Auto tagging
+
+Priority prediction
+
+8. 👥 Agent Workspace
+Unified Inbox
+All channels in one view
+
+Filters:
+
+Status
+
+Team
+
+Priority
+
+Channel
+
+Ticket View
+Full conversation timeline
+
+Channel indicators (Email / WhatsApp)
+
+Internal notes
+
+Attachments preview
+
+Audit log
+
+Agent Actions
+Reply
+
+Assign
+
+Tag
+
+Escalate
+
+Link to job/site
+
+9. 📊 SLA & Escalation
+SLA Types
+First response time
+
+Resolution time
+
+Rules
+Based on:
+
+Client
+
+Priority
+
+Channel
+
+Escalation
+Notify manager
+
+Reassign
+
+Increase priority
+
+10. 📣 Notifications System
+In-app
+
+Email
+
+Push notifications
+
+Optional WhatsApp alerts (internal)
+
+11. 📂 Attachments & Media
+Secure storage
+
+File preview
+
+Download tracking
+
+Virus scanning (optional)
+
+12. 🔍 Search & Filtering
+Full-text search
+
+Filters:
+
+Client
+
+Date
+
+Channel
+
+Status
+
+Agent
+
+13. 📈 Reporting & Analytics
+Dashboards
+Tickets by channel
+
+SLA compliance
+
+Agent performance
+
+Response time trends
+
+Reports
+Export (CSV / PDF)
+
+Scheduled reports
+
+14. 📱 Mobile Support
+View tickets
+
+Reply
+
+Push notifications
+
+Quick actions
+
+15. 🔌 API & Integration
+APIs
+Create ticket
+
+Update ticket
+
+Fetch conversations
+
+Attach files
+
+Webhooks
+New ticket
+
+Reply received
+
+SLA breach
+
+16. 🔐 Security & Compliance
+Role-based access
+
+Audit logs
+
+Encryption (at rest + in transit)
+
+GDPR-ready
+
+17. 🧪 MVP Scope
+Email → Ticket
+
+WhatsApp → Ticket
+
+Basic ticketing
+
+Manual assignment
+
+Reply system
+
+Basic dashboard
+
+18. 🚀 Phase 2
+Automation rules
+
+SLA tracking
+
+Entity linking
+
+Advanced filters
+
+19. 🧠 Phase 3
+AI automation
+
+Smart replies
+
+Sentiment detection
+
+20. ⚠️ Risks & Mitigation
+Risk	Mitigation
+WhatsApp approval delays	Use sandbox + fallback
+Email threading issues	Message-ID tracking
+Spam	Filters + rules
+API limits	Queue + retry
+21. 🎯 Key Differentiator
+👉 Unlike Zendesk or Freshdesk
+
+FieldServicer Support Tracker is operational-first:
+
+Linked to jobs & sites
+
+Real-time field visibility
+
+Not just support — operations intelligence
+
+22. 🧾 Final Summary
+Core Capabilities
+Omnichannel inbox (Email + WhatsApp)
+
+Full ticket lifecycle management
+
+Automation engine
+
+SLA tracking & escalation
+
+Reporting & analytics
+
+Entity linking (clients, sites, jobs)
+
+Mobile-ready
+
+API-first architecture
+
