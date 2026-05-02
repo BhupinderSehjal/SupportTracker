@@ -458,6 +458,112 @@ export interface AgentStat {
   avgResponseMinutes: number;
 }
 
+export interface Notification {
+  id: number;
+  userId?: number | null;
+  ticketId?: number | null;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationCount {
+  count: number;
+}
+
+export interface AutomationRule {
+  id: number;
+  name: string;
+  description?: string | null;
+  triggerType: string;
+  conditions: unknown[];
+  actions: unknown[];
+  active: boolean;
+  runCount: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAutomationRuleBody {
+  name: string;
+  description?: string;
+  triggerType: string;
+  conditions?: unknown[];
+  actions?: unknown[];
+  active?: boolean;
+}
+
+export interface Attachment {
+  id: number;
+  ticketId: number;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  fileSize: number;
+  storagePath: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface Webhook {
+  id: number;
+  name: string;
+  url: string;
+  events: string[];
+  secret?: string | null;
+  active: boolean;
+  lastTriggeredAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateWebhookBody {
+  name: string;
+  url: string;
+  events?: string[];
+  secret?: string;
+  active?: boolean;
+}
+
+export interface MergeTicketBody {
+  targetId: number;
+}
+
+export interface MergeTicketResult {
+  success: boolean;
+  mergedInto: number;
+}
+
+export interface AiSuggestionResponse {
+  suggestions: string[];
+}
+
+export interface SimulateEmailBody {
+  fromEmail: string;
+  fromName?: string;
+  subject: string;
+  body?: string;
+  priority?: string;
+}
+
+export interface SimulateWhatsappBody {
+  fromPhone: string;
+  fromName?: string;
+  message: string;
+  priority?: string;
+}
+
+export interface SimulateResult {
+  ticket: Ticket;
+  autoLinkedClient?: number | null;
+  autoLinkedContact?: number | null;
+}
+
+export interface SuccessResponse {
+  success: boolean;
+}
+
 export type ListTicketsParams = {
   status?: string;
   priority?: string;
@@ -498,4 +604,21 @@ export type ListJobsParams = {
 export type ListContactsParams = {
   clientId?: number;
   search?: string;
+};
+
+export type UploadTicketAttachmentBody = {
+  file?: Blob;
+  uploadedBy?: string;
+};
+
+export type ListNotificationsParams = {
+  userId?: number;
+};
+
+export type GetNotificationCountParams = {
+  userId?: number;
+};
+
+export type MarkAllNotificationsReadBody = {
+  userId?: number;
 };

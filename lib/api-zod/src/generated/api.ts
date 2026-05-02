@@ -572,3 +572,311 @@ export const GetAgentStatsResponseItem = zod.object({
   avgResponseMinutes: zod.number(),
 });
 export const GetAgentStatsResponse = zod.array(GetAgentStatsResponseItem);
+
+/**
+ * @summary Merge a ticket into another
+ */
+export const MergeTicketParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MergeTicketBody = zod.object({
+  targetId: zod.number(),
+});
+
+export const MergeTicketResponse = zod.object({
+  success: zod.boolean(),
+  mergedInto: zod.number(),
+});
+
+/**
+ * @summary Get AI-powered reply suggestions for a ticket
+ */
+export const GetAiSuggestionsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetAiSuggestionsResponse = zod.object({
+  suggestions: zod.array(zod.string()),
+});
+
+/**
+ * @summary Get activity log for a ticket
+ */
+export const GetTicketActivityParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetTicketActivityResponseItem = zod.object({
+  id: zod.number(),
+  ticketId: zod.number(),
+  ticketNumber: zod.string(),
+  action: zod.string(),
+  description: zod.string(),
+  agentName: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const GetTicketActivityResponse = zod.array(
+  GetTicketActivityResponseItem,
+);
+
+/**
+ * @summary Get attachments for a ticket
+ */
+export const GetTicketAttachmentsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetTicketAttachmentsResponseItem = zod.object({
+  id: zod.number(),
+  ticketId: zod.number(),
+  fileName: zod.string(),
+  originalName: zod.string(),
+  mimeType: zod.string(),
+  fileSize: zod.number(),
+  storagePath: zod.string(),
+  uploadedBy: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const GetTicketAttachmentsResponse = zod.array(
+  GetTicketAttachmentsResponseItem,
+);
+
+/**
+ * @summary Upload a file attachment to a ticket
+ */
+export const UploadTicketAttachmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UploadTicketAttachmentBody = zod.object({
+  file: zod.instanceof(File).optional(),
+  uploadedBy: zod.string().optional(),
+});
+
+/**
+ * @summary Delete an attachment
+ */
+export const DeleteAttachmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteAttachmentResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary List notifications
+ */
+export const ListNotificationsQueryParams = zod.object({
+  userId: zod.coerce.number().optional(),
+});
+
+export const ListNotificationsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number().nullish(),
+  ticketId: zod.number().nullish(),
+  type: zod.string(),
+  title: zod.string(),
+  body: zod.string(),
+  read: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+export const ListNotificationsResponse = zod.array(
+  ListNotificationsResponseItem,
+);
+
+/**
+ * @summary Get unread notification count
+ */
+export const GetNotificationCountQueryParams = zod.object({
+  userId: zod.coerce.number().optional(),
+});
+
+export const GetNotificationCountResponse = zod.object({
+  count: zod.number(),
+});
+
+/**
+ * @summary Mark a notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MarkNotificationReadResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number().nullish(),
+  ticketId: zod.number().nullish(),
+  type: zod.string(),
+  title: zod.string(),
+  body: zod.string(),
+  read: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadBody = zod.object({
+  userId: zod.number().optional(),
+});
+
+export const MarkAllNotificationsReadResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary List automation rules
+ */
+export const ListAutomationRulesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  triggerType: zod.string(),
+  conditions: zod.array(zod.unknown()),
+  actions: zod.array(zod.unknown()),
+  active: zod.boolean(),
+  runCount: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListAutomationRulesResponse = zod.array(
+  ListAutomationRulesResponseItem,
+);
+
+/**
+ * @summary Create an automation rule
+ */
+export const CreateAutomationRuleBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+  triggerType: zod.string(),
+  conditions: zod.array(zod.unknown()).optional(),
+  actions: zod.array(zod.unknown()).optional(),
+  active: zod.boolean().optional(),
+});
+
+/**
+ * @summary Update an automation rule
+ */
+export const UpdateAutomationRuleParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateAutomationRuleBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+  triggerType: zod.string(),
+  conditions: zod.array(zod.unknown()).optional(),
+  actions: zod.array(zod.unknown()).optional(),
+  active: zod.boolean().optional(),
+});
+
+export const UpdateAutomationRuleResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  triggerType: zod.string(),
+  conditions: zod.array(zod.unknown()),
+  actions: zod.array(zod.unknown()),
+  active: zod.boolean(),
+  runCount: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete an automation rule
+ */
+export const DeleteAutomationRuleParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteAutomationRuleResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary List outbound webhooks
+ */
+export const ListWebhooksResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  url: zod.string(),
+  events: zod.array(zod.string()),
+  secret: zod.string().nullish(),
+  active: zod.boolean(),
+  lastTriggeredAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListWebhooksResponse = zod.array(ListWebhooksResponseItem);
+
+/**
+ * @summary Create an outbound webhook
+ */
+export const CreateWebhookBody = zod.object({
+  name: zod.string(),
+  url: zod.string(),
+  events: zod.array(zod.string()).optional(),
+  secret: zod.string().optional(),
+  active: zod.boolean().optional(),
+});
+
+/**
+ * @summary Update a webhook
+ */
+export const UpdateWebhookParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateWebhookBody = zod.object({
+  name: zod.string(),
+  url: zod.string(),
+  events: zod.array(zod.string()).optional(),
+  secret: zod.string().optional(),
+  active: zod.boolean().optional(),
+});
+
+export const UpdateWebhookResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  url: zod.string(),
+  events: zod.array(zod.string()),
+  secret: zod.string().nullish(),
+  active: zod.boolean(),
+  lastTriggeredAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a webhook
+ */
+export const DeleteWebhookParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteWebhookResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Simulate an inbound email creating a ticket
+ */
+export const SimulateEmailBody = zod.object({
+  fromEmail: zod.string(),
+  fromName: zod.string().optional(),
+  subject: zod.string(),
+  body: zod.string().optional(),
+  priority: zod.string().optional(),
+});
+
+/**
+ * @summary Simulate an inbound WhatsApp message creating a ticket
+ */
+export const SimulateWhatsappBody = zod.object({
+  fromPhone: zod.string(),
+  fromName: zod.string().optional(),
+  message: zod.string(),
+  priority: zod.string().optional(),
+});

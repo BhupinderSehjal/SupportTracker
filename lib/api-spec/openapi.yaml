@@ -31,6 +31,16 @@ tags:
     description: Tag management
   - name: dashboard
     description: Dashboard and analytics
+  - name: notifications
+    description: In-app notification management
+  - name: automation
+    description: Automation rule engine
+  - name: attachments
+    description: File attachment management
+  - name: webhooks
+    description: Outbound webhook configuration
+  - name: simulate
+    description: Channel ingestion simulation
 paths:
   /healthz:
     get:
@@ -597,6 +607,417 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/AgentStat"
+
+  /tickets/export:
+    get:
+      operationId: exportTicketsCsv
+      tags: [tickets]
+      summary: Export tickets as CSV
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /tickets/{id}/merge:
+    post:
+      operationId: mergeTicket
+      tags: [tickets]
+      summary: Merge a ticket into another
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergeTicketBody"
+      responses:
+        "200":
+          description: Merge result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MergeTicketResult"
+
+  /tickets/{id}/ai-suggest:
+    get:
+      operationId: getAiSuggestions
+      tags: [tickets]
+      summary: Get AI-powered reply suggestions for a ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: AI suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSuggestionResponse"
+
+  /tickets/{id}/activity:
+    get:
+      operationId: getTicketActivity
+      tags: [tickets]
+      summary: Get activity log for a ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Activity items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  /tickets/{id}/attachments:
+    get:
+      operationId: getTicketAttachments
+      tags: [attachments]
+      summary: Get attachments for a ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of attachments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Attachment"
+    post:
+      operationId: uploadTicketAttachment
+      tags: [attachments]
+      summary: Upload a file attachment to a ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                uploadedBy:
+                  type: string
+      responses:
+        "201":
+          description: Created attachment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attachment"
+
+  /attachments/{id}:
+    delete:
+      operationId: deleteAttachment
+      tags: [attachments]
+      summary: Delete an attachment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List notifications
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/count:
+    get:
+      operationId: getNotificationCount
+      tags: [notifications]
+      summary: Get unread notification count
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationCount"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /automation-rules:
+    get:
+      operationId: listAutomationRules
+      tags: [automation]
+      summary: List automation rules
+      responses:
+        "200":
+          description: List of automation rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AutomationRule"
+    post:
+      operationId: createAutomationRule
+      tags: [automation]
+      summary: Create an automation rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAutomationRuleBody"
+      responses:
+        "201":
+          description: Created rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutomationRule"
+
+  /automation-rules/{id}:
+    patch:
+      operationId: updateAutomationRule
+      tags: [automation]
+      summary: Update an automation rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAutomationRuleBody"
+      responses:
+        "200":
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutomationRule"
+    delete:
+      operationId: deleteAutomationRule
+      tags: [automation]
+      summary: Delete an automation rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /webhooks:
+    get:
+      operationId: listWebhooks
+      tags: [webhooks]
+      summary: List outbound webhooks
+      responses:
+        "200":
+          description: List of webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Webhook"
+    post:
+      operationId: createWebhook
+      tags: [webhooks]
+      summary: Create an outbound webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWebhookBody"
+      responses:
+        "201":
+          description: Created webhook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Webhook"
+
+  /webhooks/{id}:
+    patch:
+      operationId: updateWebhook
+      tags: [webhooks]
+      summary: Update a webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWebhookBody"
+      responses:
+        "200":
+          description: Updated webhook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Webhook"
+    delete:
+      operationId: deleteWebhook
+      tags: [webhooks]
+      summary: Delete a webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /simulate/email:
+    post:
+      operationId: simulateEmail
+      tags: [simulate]
+      summary: Simulate an inbound email creating a ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulateEmailBody"
+      responses:
+        "201":
+          description: Created ticket from simulated email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulateResult"
+
+  /simulate/whatsapp:
+    post:
+      operationId: simulateWhatsapp
+      tags: [simulate]
+      summary: Simulate an inbound WhatsApp message creating a ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulateWhatsappBody"
+      responses:
+        "201":
+          description: Created ticket from simulated WhatsApp message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulateResult"
 
 components:
   schemas:
@@ -1236,3 +1657,224 @@ components:
         avgResponseMinutes:
           type: number
       required: [agentId, agentName, openTickets, resolvedToday, avgResponseMinutes]
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+          nullable: true
+        ticketId:
+          type: integer
+          nullable: true
+        type:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, type, title, body, read, createdAt]
+
+    NotificationCount:
+      type: object
+      properties:
+        count:
+          type: integer
+      required: [count]
+
+    AutomationRule:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        triggerType:
+          type: string
+        conditions:
+          type: array
+          items: {}
+        actions:
+          type: array
+          items: {}
+        active:
+          type: boolean
+        runCount:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, triggerType, conditions, actions, active, runCount, createdAt, updatedAt]
+
+    CreateAutomationRuleBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        triggerType:
+          type: string
+        conditions:
+          type: array
+          items: {}
+        actions:
+          type: array
+          items: {}
+        active:
+          type: boolean
+      required: [name, triggerType]
+
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticketId:
+          type: integer
+        fileName:
+          type: string
+        originalName:
+          type: string
+        mimeType:
+          type: string
+        fileSize:
+          type: integer
+        storagePath:
+          type: string
+        uploadedBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, ticketId, fileName, originalName, mimeType, fileSize, storagePath, uploadedBy, createdAt]
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        secret:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+        lastTriggeredAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, url, events, active, createdAt]
+
+    CreateWebhookBody:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        secret:
+          type: string
+        active:
+          type: boolean
+      required: [name, url]
+
+    MergeTicketBody:
+      type: object
+      properties:
+        targetId:
+          type: integer
+      required: [targetId]
+
+    MergeTicketResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        mergedInto:
+          type: integer
+      required: [success, mergedInto]
+
+    AiSuggestionResponse:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            type: string
+      required: [suggestions]
+
+    SimulateEmailBody:
+      type: object
+      properties:
+        fromEmail:
+          type: string
+        fromName:
+          type: string
+        subject:
+          type: string
+        body:
+          type: string
+        priority:
+          type: string
+      required: [fromEmail, subject]
+
+    SimulateWhatsappBody:
+      type: object
+      properties:
+        fromPhone:
+          type: string
+        fromName:
+          type: string
+        message:
+          type: string
+        priority:
+          type: string
+      required: [fromPhone, message]
+
+    SimulateResult:
+      type: object
+      properties:
+        ticket:
+          $ref: "#/components/schemas/Ticket"
+        autoLinkedClient:
+          type: integer
+          nullable: true
+        autoLinkedContact:
+          type: integer
+          nullable: true
+      required: [ticket]
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required: [success]

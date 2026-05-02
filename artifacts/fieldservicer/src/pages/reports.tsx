@@ -6,16 +6,27 @@ import {
   useGetAgentStats, getGetAgentStatsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from "recharts";
 import { format } from "date-fns";
+import { Download } from "lucide-react";
 
 const CHANNEL_COLORS: Record<string, string> = {
   email: "#3b82f6",
   whatsapp: "#25d366",
   manual: "#8b5cf6",
 };
+
+function exportCsv() {
+  const link = document.createElement("a");
+  link.href = "/api/tickets/export";
+  link.download = `tickets-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 export default function Reports() {
   const { data: summary } = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey() } });
@@ -37,9 +48,14 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Support performance analytics</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Support performance analytics</p>
+        </div>
+        <Button variant="outline" onClick={exportCsv} className="gap-2">
+          <Download className="w-4 h-4" /> Export CSV
+        </Button>
       </div>
 
       {/* Summary KPIs */}
@@ -143,17 +159,13 @@ export default function Reports() {
                   <span className="text-sm font-medium">{stat.agentName}</span>
                 </div>
                 <div className="text-center">
-                  <span className={`text-sm font-semibold ${stat.openTickets > 5 ? "text-orange-600" : "text-foreground"}`}>
-                    {stat.openTickets}
-                  </span>
+                  <span className={`text-sm font-semibold ${stat.openTickets > 5 ? "text-orange-600" : "text-foreground"}`}>{stat.openTickets}</span>
                 </div>
                 <div className="text-center">
                   <span className="text-sm font-semibold text-green-600">{stat.resolvedToday}</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-sm text-muted-foreground">
-                    {stat.avgResponseMinutes > 0 ? `${stat.avgResponseMinutes} min` : "—"}
-                  </span>
+                  <span className="text-sm text-muted-foreground">{stat.avgResponseMinutes > 0 ? `${stat.avgResponseMinutes} min` : "—"}</span>
                 </div>
               </div>
             ))}

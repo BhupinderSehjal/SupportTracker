@@ -9,3 +9,7 @@ export * from "./tags";
 export * from "./tickets";
 export * from "./messages";
 export * from "./activity";
+export * from "./notifications";
+export * from "./automation-rules";
+export * from "./attachments";
+export * from "./webhooks";

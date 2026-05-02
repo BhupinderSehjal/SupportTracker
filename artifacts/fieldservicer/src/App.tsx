@@ -16,6 +16,8 @@ import Vendors from "@/pages/vendors";
 import Contacts from "@/pages/contacts";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
+import Automation from "@/pages/automation";
+import Channels from "@/pages/channels";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -43,6 +45,8 @@ function Router() {
         <Route path="/employees" component={Employees} />
         <Route path="/vendors" component={Vendors} />
         <Route path="/contacts" component={Contacts} />
+        <Route path="/channels" component={Channels} />
+        <Route path="/automation" component={Automation} />
         <Route path="/reports" component={Reports} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />

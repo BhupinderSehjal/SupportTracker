@@ -30,6 +30,8 @@ export const ticketsTable = pgTable("tickets", {
   assignedToId: integer("assigned_to_id").references(() => usersTable.id),
   tags: text("tags").array().notNull().default([]),
   slaBreached: boolean("sla_breached").notNull().default(false),
+  slaDeadlineAt: timestamp("sla_deadline_at"),
+  mergedIntoId: integer("merged_into_id"),
   firstResponseAt: timestamp("first_response_at"),
   resolvedAt: timestamp("resolved_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

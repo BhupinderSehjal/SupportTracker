@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import {
   useGetTicket, getGetTicketQueryKey,
   useUpdateTicket, useCreateMessage,
   useListUsers, useListClients, useListSites, useListJobs,
+  useListTickets,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   ArrowLeft, Mail, MessageCircle, Plus, AlertTriangle,
-  User, MapPin, Building2, Briefcase, Tag, Clock, Send, Lock
+  User, MapPin, Building2, Briefcase, Tag, Clock, Send, Lock,
+  Paperclip, X, FileText, Image, Sparkles, GitMerge, Download, Loader2, AlertCircle
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-blue-100 text-blue-800 border-blue-200",
@@ -40,6 +44,17 @@ function ChannelIcon({ channel }: { channel: string }) {
   return <Plus className="w-4 h-4 text-gray-400" />;
 }
 
+function FileIcon({ mimeType }: { mimeType: string }) {
+  if (mimeType.startsWith("image/")) return <Image className="w-4 h-4 text-blue-500" />;
+  return <FileText className="w-4 h-4 text-gray-500" />;
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function MessageBubble({ msg }: { msg: any }) {
   const isInternal = msg.type === "internal_note";
   const isOutbound = msg.type === "outbound";
@@ -55,9 +70,7 @@ function MessageBubble({ msg }: { msg: any }) {
             <p className="text-xs font-medium text-yellow-700 mb-1.5">Internal Note · {msg.senderName}</p>
             <p className="text-sm text-yellow-900 whitespace-pre-wrap">{msg.body}</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 ml-1">
-            {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-          </p>
+          <p className="text-xs text-muted-foreground mt-1 ml-1">{formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}</p>
         </div>
       </div>
     );
@@ -67,16 +80,14 @@ function MessageBubble({ msg }: { msg: any }) {
     return (
       <div className="flex gap-3 flex-row-reverse">
         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1 text-xs font-bold text-primary-foreground">
-          {msg.senderName[0]}
+          {(msg.senderName ?? "A")[0]}
         </div>
         <div className="flex-1 max-w-2xl flex flex-col items-end">
           <div className="bg-primary text-primary-foreground rounded-lg px-4 py-3">
             <p className="text-xs font-medium opacity-70 mb-1.5">{msg.senderName}</p>
             <p className="text-sm whitespace-pre-wrap">{msg.body}</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 mr-1">
-            {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-          </p>
+          <p className="text-xs text-muted-foreground mt-1 mr-1">{formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}</p>
         </div>
       </div>
     );
@@ -92,9 +103,7 @@ function MessageBubble({ msg }: { msg: any }) {
           <p className="text-xs font-medium text-muted-foreground mb-1.5">{msg.senderName}</p>
           <p className="text-sm text-foreground whitespace-pre-wrap">{msg.body}</p>
         </div>
-        <p className="text-xs text-muted-foreground mt-1 ml-1">
-          {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-        </p>
+        <p className="text-xs text-muted-foreground mt-1 ml-1">{formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}</p>
       </div>
     </div>
   );
@@ -105,8 +114,19 @@ export default function TicketDetail() {
   const id = Number(params.id);
   const [, navigate] = useLocation();
   const qc = useQueryClient();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [replyBody, setReplyBody] = useState("");
   const [replyType, setReplyType] = useState<"outbound" | "internal_note">("outbound");
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const [showMerge, setShowMerge] = useState(false);
+  const [mergeTargetId, setMergeTargetId] = useState<number | null>(null);
+  const [merging, setMerging] = useState(false);
 
   const { data: ticket, isLoading, error } = useGetTicket(id, {
     query: { enabled: !!id, queryKey: getGetTicketQueryKey(id) }
@@ -116,9 +136,16 @@ export default function TicketDetail() {
   const { data: clients = [] } = useListClients();
   const { data: sites = [] } = useListSites();
   const { data: jobs = [] } = useListJobs();
+  const { data: ticketsData } = useListTickets({});
 
   const updateTicket = useUpdateTicket();
   const createMessage = useCreateMessage();
+
+  // Load attachments
+  useState(() => {
+    if (!id) return;
+    fetch(`/api/tickets/${id}/attachments`).then(r => r.json()).then(setAttachments).catch(() => {});
+  });
 
   async function handleUpdate(data: any) {
     await updateTicket.mutateAsync({ id, data });
@@ -133,32 +160,91 @@ export default function TicketDetail() {
     qc.invalidateQueries({ queryKey: getGetTicketQueryKey(id) });
   }
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("uploadedBy", "Agent");
+      const res = await fetch(`/api/tickets/${id}/attachments`, { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const attachment = await res.json();
+      setAttachments(prev => [...prev, attachment]);
+      toast({ title: "File uploaded", description: attachment.originalName });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function deleteAttachment(attachmentId: number) {
+    await fetch(`/api/attachments/${attachmentId}`, { method: "DELETE" });
+    setAttachments(prev => prev.filter(a => a.id !== attachmentId));
+    toast({ title: "Attachment deleted" });
+  }
+
+  async function loadAiSuggestions() {
+    setAiLoading(true);
+    setShowAi(true);
+    try {
+      const res = await fetch(`/api/tickets/${id}/ai-suggest`);
+      if (!res.ok) throw new Error("AI service unavailable");
+      const data = await res.json();
+      setAiSuggestions(data.suggestions ?? []);
+    } catch (err: any) {
+      toast({ title: "AI Error", description: err.message, variant: "destructive" });
+      setShowAi(false);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function handleMerge() {
+    if (!mergeTargetId) return;
+    setMerging(true);
+    try {
+      const res = await fetch(`/api/tickets/${id}/merge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetId: mergeTargetId }),
+      });
+      if (!res.ok) throw new Error("Merge failed");
+      toast({ title: "Tickets merged successfully" });
+      setShowMerge(false);
+      navigate("/tickets");
+    } catch (err: any) {
+      toast({ title: "Merge failed", description: err.message, variant: "destructive" });
+    } finally {
+      setMerging(false);
+    }
+  }
+
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Loading ticket...
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading ticket...</div>;
   }
 
   if (error || !ticket) {
     return (
       <div className="text-center py-16">
         <p className="text-muted-foreground">Ticket not found</p>
-        <Button asChild className="mt-4" variant="outline">
-          <Link href="/tickets">Back to Tickets</Link>
-        </Button>
+        <Button asChild className="mt-4" variant="outline"><Link href="/tickets">Back to Tickets</Link></Button>
       </div>
     );
   }
 
   const messages = (ticket as any).messages ?? [];
+  const otherTickets = ((ticketsData as any)?.tickets ?? []).filter((t: any) => t.id !== id && t.status !== "closed");
+  const slaDeadlineAt = (ticket as any).slaDeadlineAt;
 
   return (
     <div className="flex gap-6 h-full">
       {/* Main conversation area */}
       <div className="flex-1 min-w-0 space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/tickets"><ArrowLeft className="w-4 h-4 mr-1" /> Tickets</Link>
           </Button>
@@ -168,11 +254,21 @@ export default function TicketDetail() {
               <AlertTriangle className="w-3 h-3" /> SLA Breached
             </span>
           )}
+          {slaDeadlineAt && !ticket.slaBreached && (
+            <span className="inline-flex items-center gap-1 text-xs bg-orange-50 text-orange-700 border border-orange-200 rounded px-2 py-0.5">
+              <Clock className="w-3 h-3" /> Due {formatDistanceToNow(new Date(slaDeadlineAt), { addSuffix: true })}
+            </span>
+          )}
+          {(ticket as any).mergedIntoId && (
+            <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 border border-gray-200 rounded px-2 py-0.5">
+              <GitMerge className="w-3 h-3" /> Merged
+            </span>
+          )}
         </div>
 
         <div>
           <h1 className="text-xl font-bold tracking-tight">{ticket.subject}</h1>
-          <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             <span className={`text-xs border rounded-full px-2.5 py-0.5 font-medium ${STATUS_COLORS[ticket.status] ?? ""}`}>
               {ticket.status.replace(/_/g, " ")}
             </span>
@@ -180,14 +276,39 @@ export default function TicketDetail() {
               {ticket.priority}
             </span>
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ChannelIcon channel={ticket.channel} />
-              {ticket.channel}
+              <ChannelIcon channel={ticket.channel} />{ticket.channel}
             </span>
-            <span className="text-xs text-muted-foreground">
-              · {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
-            </span>
+            <span className="text-xs text-muted-foreground">· {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}</span>
           </div>
         </div>
+
+        {/* AI Suggestions Panel */}
+        {showAi && (
+          <div className="border border-violet-200 bg-violet-50/50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium flex items-center gap-1.5 text-violet-800">
+                <Sparkles className="w-4 h-4" /> AI Smart Reply Suggestions
+              </span>
+              <Button variant="ghost" size="sm" onClick={() => setShowAi(false)}><X className="w-3.5 h-3.5" /></Button>
+            </div>
+            {aiLoading ? (
+              <div className="flex items-center gap-2 text-sm text-violet-600">
+                <Loader2 className="w-4 h-4 animate-spin" /> Generating suggestions...
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {aiSuggestions.map((s, i) => (
+                  <div key={i} className="bg-white border border-violet-100 rounded-md p-3">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{s}</p>
+                    <Button size="sm" variant="outline" className="mt-2 text-xs h-7" onClick={() => { setReplyBody(s); setReplyType("outbound"); setShowAi(false); }}>
+                      Use This Reply
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Conversation */}
         <div className="space-y-4 py-2">
@@ -197,35 +318,57 @@ export default function TicketDetail() {
               <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
             </div>
           )}
-          {messages.map((msg: any) => (
-            <MessageBubble key={msg.id} msg={msg} />
-          ))}
+          {messages.map((msg: any) => <MessageBubble key={msg.id} msg={msg} />)}
           {messages.length === 0 && !ticket.description && (
-            <div className="text-center py-10 text-muted-foreground text-sm">
-              No messages yet. Send the first reply below.
-            </div>
+            <div className="text-center py-10 text-muted-foreground text-sm">No messages yet. Send the first reply below.</div>
           )}
         </div>
+
+        {/* Attachments List */}
+        {attachments.length > 0 && (
+          <div className="border rounded-lg p-3">
+            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+              <Paperclip className="w-3.5 h-3.5" /> Attachments ({attachments.length})
+            </p>
+            <div className="space-y-1.5">
+              {attachments.map(att => (
+                <div key={att.id} className="flex items-center gap-2 text-sm group">
+                  <FileIcon mimeType={att.mimeType} />
+                  <a href={att.storagePath} target="_blank" rel="noopener noreferrer" className="flex-1 text-blue-600 hover:underline truncate text-xs">
+                    {att.originalName}
+                  </a>
+                  <span className="text-xs text-muted-foreground">{formatBytes(att.fileSize)}</span>
+                  <button onClick={() => deleteAttachment(att.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Reply Box */}
         {ticket.status !== "closed" && (
           <form onSubmit={handleSendReply} className="border rounded-lg overflow-hidden">
-            <div className="flex border-b">
-              <button
-                type="button"
-                onClick={() => setReplyType("outbound")}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${replyType === "outbound" ? "bg-background border-b-2 border-primary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              >
+            <div className="flex items-center border-b">
+              <button type="button" onClick={() => setReplyType("outbound")}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${replyType === "outbound" ? "bg-background border-b-2 border-primary text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                 <Send className="w-3.5 h-3.5 inline mr-1.5" /> Reply
               </button>
-              <button
-                type="button"
-                onClick={() => setReplyType("internal_note")}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${replyType === "internal_note" ? "bg-background border-b-2 border-yellow-500 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              >
+              <button type="button" onClick={() => setReplyType("internal_note")}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${replyType === "internal_note" ? "bg-background border-b-2 border-yellow-500 text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                 <Lock className="w-3.5 h-3.5 inline mr-1.5" /> Internal Note
               </button>
+              <div className="ml-auto flex items-center gap-1 px-2">
+                <Button type="button" variant="ghost" size="sm" onClick={loadAiSuggestions} disabled={aiLoading} title="AI Smart Reply">
+                  <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} title="Attach file">
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Paperclip className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
             </div>
+            <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} />
             <Textarea
               value={replyBody}
               onChange={e => setReplyBody(e.target.value)}
@@ -277,9 +420,14 @@ export default function TicketDetail() {
                 <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Unassigned" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0">Unassigned</SelectItem>
-                  {users.map((u: any) => <SelectItem key={u.id} value={String(u.id)}>{u.name}</SelectItem>)}
+                  {(users as any[]).map((u: any) => <SelectItem key={u.id} value={String(u.id)}>{u.name}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="pt-1 flex flex-col gap-2">
+              <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => setShowMerge(true)}>
+                <GitMerge className="w-3.5 h-3.5" /> Merge into Another Ticket
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -290,9 +438,7 @@ export default function TicketDetail() {
             {ticket.clientName && (
               <div className="flex items-center gap-2 text-sm">
                 <Building2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <Link href={`/clients/${ticket.clientId}`} className="text-blue-600 hover:underline truncate">
-                  {ticket.clientName}
-                </Link>
+                <Link href={`/clients/${ticket.clientId}`} className="text-blue-600 hover:underline truncate">{ticket.clientName}</Link>
               </div>
             )}
             {ticket.siteName && (
@@ -313,7 +459,7 @@ export default function TicketDetail() {
                 <span className="truncate">{ticket.employeeName}</span>
               </div>
             )}
-            {!ticket.clientName && !ticket.siteName && !ticket.jobTitle && (
+            {!ticket.clientName && !ticket.siteName && !ticket.jobTitle && !ticket.employeeName && (
               <p className="text-xs text-muted-foreground">No entities linked</p>
             )}
           </CardContent>
@@ -337,6 +483,14 @@ export default function TicketDetail() {
                 <span>Created</span>
                 <span className="text-foreground">{format(new Date(ticket.createdAt), "MMM d, yyyy HH:mm")}</span>
               </div>
+              {slaDeadlineAt && (
+                <div className="flex justify-between">
+                  <span>SLA Due</span>
+                  <span className={ticket.slaBreached ? "text-red-600 font-medium" : "text-foreground"}>
+                    {format(new Date(slaDeadlineAt), "MMM d HH:mm")}
+                  </span>
+                </div>
+              )}
               {ticket.firstResponseAt && (
                 <div className="flex justify-between">
                   <span>First response</span>
@@ -353,10 +507,49 @@ export default function TicketDetail() {
                 <span>Messages</span>
                 <span className="text-foreground">{ticket.messageCount}</span>
               </div>
+              <div className="flex justify-between">
+                <span>Attachments</span>
+                <span className="text-foreground">{attachments.length}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Merge Dialog */}
+      <Dialog open={showMerge} onOpenChange={setShowMerge}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><GitMerge className="w-4 h-4" /> Merge Ticket</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-sm text-amber-800">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <p>This ticket will be closed and all its messages moved to the target ticket. This cannot be undone.</p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Merge into</label>
+              <Select value={mergeTargetId ? String(mergeTargetId) : ""} onValueChange={v => setMergeTargetId(Number(v))}>
+                <SelectTrigger><SelectValue placeholder="Select target ticket..." /></SelectTrigger>
+                <SelectContent>
+                  {otherTickets.map((t: any) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.ticketNumber} — {t.subject.slice(0, 40)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMerge(false)}>Cancel</Button>
+            <Button onClick={handleMerge} disabled={!mergeTargetId || merging} className="gap-1.5">
+              {merging ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitMerge className="w-4 h-4" />}
+              Merge Ticket
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,15 +1,20 @@
 import { Router, type IRouter } from "express";
-import healthRouter from "./health";
-import ticketsRouter from "./tickets";
-import clientsRouter from "./clients";
-import sitesRouter from "./sites";
-import employeesRouter from "./employees";
-import vendorsRouter from "./vendors";
-import contactsRouter from "./contacts";
-import jobsRouter from "./jobs";
-import usersRouter from "./users";
-import tagsRouter from "./tags";
-import dashboardRouter from "./dashboard";
+import healthRouter from "./health.js";
+import ticketsRouter from "./tickets.js";
+import clientsRouter from "./clients.js";
+import sitesRouter from "./sites.js";
+import employeesRouter from "./employees.js";
+import vendorsRouter from "./vendors.js";
+import contactsRouter from "./contacts.js";
+import jobsRouter from "./jobs.js";
+import usersRouter from "./users.js";
+import tagsRouter from "./tags.js";
+import dashboardRouter from "./dashboard.js";
+import notificationsRouter from "./notifications.js";
+import automationRouter from "./automation.js";
+import attachmentsRouter from "./attachments.js";
+import webhooksRouter from "./webhooks.js";
+import simulateRouter from "./simulate.js";
 
 const router: IRouter = Router();
 
@@ -24,5 +29,10 @@ router.use(jobsRouter);
 router.use(usersRouter);
 router.use(tagsRouter);
 router.use(dashboardRouter);
+router.use(notificationsRouter);
+router.use(automationRouter);
+router.use(attachmentsRouter);
+router.use(webhooksRouter);
+router.use(simulateRouter);
 
 export default router;
