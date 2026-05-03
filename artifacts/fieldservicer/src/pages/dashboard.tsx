@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "wouter";
 import {
   useGetDashboardSummary, getGetDashboardSummaryQueryKey,
@@ -70,10 +70,10 @@ export default function Dashboard() {
     query: { queryKey: getGetAgentStatsQueryKey() }
   });
 
-  const trendData = trends.map((t: any) => ({
+  const trendData = useMemo(() => trends.map((t: any) => ({
     ...t,
     date: format(new Date(t.date), "MMM d"),
-  }));
+  })), [trends]);
 
   const channelTotal = channels.reduce((s: number, c: any) => s + c.count, 0) || 1;
 
@@ -209,7 +209,7 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-800 truncate">{item.subject}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {item.action} · {item.clientName ?? "No client"} · {formatDistanceToNow(new Date(item.at), { addSuffix: true })}
+                      {item.action} · {item.clientName ?? "No client"} · {item.at ? formatDistanceToNow(new Date(item.at), { addSuffix: true }) : "just now"}
                     </p>
                   </div>
                   {item.slaBreached && <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />}
