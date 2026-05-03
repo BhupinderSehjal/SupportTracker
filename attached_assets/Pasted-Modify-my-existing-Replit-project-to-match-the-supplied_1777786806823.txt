@@ -1,0 +1,64 @@
+Modify my existing Replit project to match the supplied FieldServicer Support Tracker reference image as closely as possible.
+
+Important:
+- Keep my existing functionality and routes.
+- Replace/improve the design to match the FieldServicer theme.
+- Do not create a generic dashboard.
+- Do not remove working code.
+
+Theme:
+- Dark black hero with blue/purple glow.
+- Large gradient title: SUPPORT TRACKER.
+- White FieldServicer logo/brand area.
+- Cyan, electric blue and purple gradient accents.
+- WhatsApp green accent for WhatsApp features.
+- White lower content sections with clean cards, thin dividers, rounded corners and blue/purple line icons.
+- Dark navy/black footer with QR placeholder and contact details.
+
+Hero content:
+FieldServicer
+SUPPORT TRACKER
+Email & WhatsApp Support
+Smarter Support. Better Operations.
+
+Body:
+FieldServicer Support Tracker unifies Email and WhatsApp conversations into a single intelligent platform. Track, assign, automate and resolve tickets faster while staying connected with your clients and teams across every channel.
+
+Hero buttons/cards:
+- Email Support
+- WhatsApp Support
+
+Right-side visual:
+Create a laptop-style dashboard mockup showing:
+- Open Tickets 128
+- In Progress 72
+- Waiting on Customer 46
+- Resolved Today 32
+- Tickets by Channel donut chart: Email 62%, WhatsApp 38%
+- SLA Compliance 92%
+- Ticket trend line chart
+- Recent Tickets list
+
+Add overlapping mobile phone mockup showing a WhatsApp ticket conversation:
+- Ticket #FS-1024
+- Customer WhatsApp message: Hi, my AC is not working properly.
+- Agent reply: Hi! We're looking into this. Could you share the error code?
+- Customer reply: Sure, it is E7.
+- Agent reply: Thank you! Our technician will contact you shortly.
+
+Below hero:
+Create a five-column feature row:
+Unified Inbox, Smart Ticketing, Automation Engine, SLA & Escalations, Reports & Insights.
+
+Then create a “Powerful Capabilities” grid with:
+Omnichannel Support, Advanced Ticket Management, Agent Collaboration, SLA & Escalation, Templates & Quick Replies, Search & Filters, Notifications, Reporting & Analytics, Mobile Ready, Secure & Compliant, APIs & Integrations, Scalable & Reliable.
+
+Bottom sections:
+- The FieldServicer Advantage card
+- Perfect For card
+- Footer CTA with QR placeholder, phone, email, website and FieldServicer logo.
+
+Make it fully responsive for desktop, tablet and mobile.
+Use reusable components.
+Use lucide-react icons or matching line icons.
+Use polished spacing, hover states, gradients, shadows and clean typography
